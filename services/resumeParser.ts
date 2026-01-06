@@ -1,8 +1,7 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
-const pdf = require('pdf-parse');
-const mammoth = require('mammoth');
+// Bypass buggy index.js in pdf-parse which crashes in ESM/Serverless
+// @ts-ignore
+import pdf from 'pdf-parse/lib/pdf-parse.js';
+import mammoth from 'mammoth';
 
 interface ParsedResume {
     text: string;
@@ -16,7 +15,9 @@ export const parseResume = async (buffer: Buffer, mimeType: string): Promise<Par
 
         if (mimeType === 'application/pdf') {
             console.log('📄 resumeParser: Using pdf-parse');
-            // pdf is the function directly
+            // pdf-parse export might be the function itself or have a default export. 
+            // In many TS setups with esModuleInterop, simple import works.
+            // If it fails at runtime, we might need to adjust, but this is standard for "type": "module".
             const data = await pdf(buffer);
             console.log('📄 resumeParser: PDF parsed successfully');
             return {
@@ -53,6 +54,7 @@ export const parseResume = async (buffer: Buffer, mimeType: string): Promise<Par
 };
 
 const cleanText = (text: string): string => {
+    if (!text) return "";
     // Remove null bytes
     let cleaned = text.replace(/\0/g, '');
     // Replace multiple spaces/newlines with single space
