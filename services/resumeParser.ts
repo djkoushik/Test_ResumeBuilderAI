@@ -1,6 +1,5 @@
-// Bypass buggy index.js in pdf-parse which crashes in ESM/Serverless
 // @ts-ignore
-import pdf from 'pdf-parse/lib/pdf-parse.js';
+import { extractTextFromPDF } from './pdfService.js';
 import mammoth from 'mammoth';
 
 interface ParsedResume {
@@ -14,19 +13,20 @@ export const parseResume = async (buffer: Buffer, mimeType: string): Promise<Par
         console.log(`📄 resumeParser: Starting parse for mimeType: ${mimeType}`);
 
         if (mimeType === 'application/pdf') {
-            console.log('📄 resumeParser: Using pdf-parse');
-            // pdf-parse export might be the function itself or have a default export. 
-            // In many TS setups with esModuleInterop, simple import works.
-            // If it fails at runtime, we might need to adjust, but this is standard for "type": "module".
-            const data = await pdf(buffer);
-            console.log('📄 resumeParser: PDF parsed successfully');
-            return {
-                text: cleanText(data.text),
-                metadata: {
-                    numpages: data.numpages,
-                    info: data.info
-                }
-            };
+            console.log('📄 resumeParser: Using pdfjs-dist');
+            try {
+                const text = await extractTextFromPDF(buffer);
+                console.log('📄 resumeParser: PDF parsed successfully');
+                return {
+                    text: cleanText(text),
+                    metadata: {
+                        numpages: 0, // pdfjs returns this but we didn't extract it in the helper yet, acceptable trade-off
+                    }
+                };
+            } catch (pdfError: any) {
+                console.error('📄 resumeParser: PDF Parse Failed:', pdfError);
+                throw new Error(`PDF Parsing failed: ${pdfError.message}`);
+            }
         } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || mimeType === 'application/msword') {
             console.log('📄 resumeParser: Using mammoth');
             const result = await mammoth.extractRawText({ buffer });

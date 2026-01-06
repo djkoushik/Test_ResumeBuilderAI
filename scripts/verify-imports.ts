@@ -1,24 +1,20 @@
 
-// Only test the deep import. Do NOT import resumeParser (which uses the bad import)
-try {
-    console.log("Importing deep...");
-    // @ts-ignore
-    import('pdf-parse/lib/pdf-parse.js').then((mod) => {
-        console.log("Deep import success!", mod.default ? "Has default" : "No default");
+import { parseResume } from '../services/resumeParser.js';
 
-        // Test it
-        const pdf = mod.default || mod;
-        console.log("PDF function type:", typeof pdf);
+console.log("Values imported:");
+console.log("parseResume:", typeof parseResume);
 
-        pdf(Buffer.from("dummy")).then(() => {
-            console.log("Execution success (or at least no crash on init)");
-        }).catch(err => {
-            console.log("Execution error (expected for dummy buffer):", err.message);
-        });
-
-    }).catch(err => {
-        console.error("Deep import failed:", err);
-    });
-} catch (e) {
-    console.error("Sync error:", e);
+async function test() {
+    try {
+        console.log("Attempting to call parseResume with null buffer (expect error but not crash on import)...");
+        try {
+            await parseResume(Buffer.from("dummy"), "application/pdf");
+        } catch (e: any) {
+            console.log("Caught expected error:", e.message);
+        }
+    } catch (err) {
+        console.error("CRITICAL: Crash during execution:", err);
+    }
 }
+
+test();
