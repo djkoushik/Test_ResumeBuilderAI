@@ -24,9 +24,9 @@ const MeasureResume: React.FC<MeasureResumeProps> = ({ onBack, onGoToBuilder }) 
                 setError('Please upload a PDF or DOCX file.');
                 return;
             }
-            // Validate size (5MB)
-            if (selectedFile.size > 5 * 1024 * 1024) {
-                setError('File size must be less than 5MB.');
+            // Validate size (4MB)
+            if (selectedFile.size > 4 * 1024 * 1024) {
+                setError('File size must be less than 4MB.');
                 return;
             }
             setError(null);
@@ -156,7 +156,7 @@ const MeasureResume: React.FC<MeasureResumeProps> = ({ onBack, onGoToBuilder }) 
                                                 <p className="pl-1">or drag and drop</p>
                                             </div>
                                             <p className="text-xs text-gray-500 dark:text-gray-500">
-                                                PDF, DOCX up to 5MB
+                                                PDF, DOCX up to 4MB
                                             </p>
                                         </>
                                     )}
